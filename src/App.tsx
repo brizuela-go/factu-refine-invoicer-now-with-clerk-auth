@@ -3,7 +3,6 @@ import {
   useNotificationProvider,
   ThemedLayoutV2,
   ErrorComponent,
-  AuthPage,
 } from "@refinedev/antd";
 import routerProvider, {
   NavigateToResource,
@@ -36,6 +35,9 @@ import { authProvider } from "@/providers/auth-provider";
 import { ConfigProvider } from "@/providers/config-provider";
 import "@refinedev/antd/dist/reset.css";
 import "./styles/custom.css";
+import SignInPage from "./pages/auth/SignIn";
+import SignUpPage from "./pages/auth/SignUp";
+import { SignedIn, SignedOut } from "@clerk/clerk-react";
 
 const App: React.FC = () => {
   return (
@@ -77,10 +79,7 @@ const App: React.FC = () => {
               <Routes>
                 <Route
                   element={
-                    <Authenticated
-                      key="authenticated-routes"
-                      fallback={<CatchAllNavigate to="/login" />}
-                    >
+                    <SignedIn>
                       <ThemedLayoutV2
                         Header={() => <Header />}
                         Sider={() => null}
@@ -95,7 +94,7 @@ const App: React.FC = () => {
                           <Outlet />
                         </div>
                       </ThemedLayoutV2>
-                    </Authenticated>
+                    </SignedIn>
                   }
                 >
                   <Route index element={<NavigateToResource />} />
@@ -114,7 +113,6 @@ const App: React.FC = () => {
                     path="/accounts/:id/edit"
                     element={<AccountsPageEdit />}
                   />
-
                   <Route
                     path="/clients"
                     element={
@@ -130,60 +128,41 @@ const App: React.FC = () => {
                     path="/clients/:id/edit"
                     element={<ClientsPageEdit />}
                   />
-
                   <Route path="/invoices">
                     <Route index element={<InvoicePageList />} />
                     <Route path="new" element={<InvoicesPageCreate />} />
                     <Route path=":id" element={<InvoicesPageShow />} />
                   </Route>
-
                   <Route path="*" element={<ErrorComponent />} />
                 </Route>
 
                 <Route
+                  path="/sign-in/*"
                   element={
-                    <Authenticated key="auth-pages" fallback={<Outlet />}>
-                      <NavigateToResource />
-                    </Authenticated>
+                    <SignedOut>
+                      <SignInPage />
+                    </SignedOut>
                   }
-                >
-                  <Route
-                    path="/login"
-                    element={
-                      <AuthPage
-                        type="login"
-                        registerLink={false}
-                        forgotPasswordLink={false}
-                        title={
-                          <Logo
-                            titleProps={{ level: 2 }}
-                            svgProps={{
-                              width: "48px",
-                              height: "40px",
-                            }}
-                          />
-                        }
-                        formProps={{
-                          initialValues: {
-                            email: "demo@refine.dev",
-                            password: "demodemo",
-                          },
-                        }}
-                      />
-                    }
-                  />
-                </Route>
+                />
+                <Route
+                  path="/sign-up/*"
+                  element={
+                    <SignedOut>
+                      <SignUpPage />
+                    </SignedOut>
+                  }
+                />
 
                 <Route
                   element={
-                    <Authenticated key="catch-all">
+                    <SignedIn>
                       <ThemedLayoutV2
                         Header={() => <Header />}
                         Sider={() => null}
                       >
                         <Outlet />
                       </ThemedLayoutV2>
-                    </Authenticated>
+                    </SignedIn>
                   }
                 >
                   <Route path="*" element={<ErrorComponent />} />

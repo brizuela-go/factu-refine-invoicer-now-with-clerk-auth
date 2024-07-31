@@ -1,90 +1,62 @@
-import type { AuthProvider } from "@refinedev/core";
-import { AuthHelper } from "@refinedev/strapi-v4";
-import { API_URL, TOKEN_KEY } from "@/utils/constants";
-
-export const strapiAuthHelper = AuthHelper(`${API_URL}/api`);
+import { AuthActionResponse, AuthProvider } from "@refinedev/core";
+import { useUser, useClerk } from "@clerk/clerk-react";
 
 export const authProvider: AuthProvider = {
   login: async ({ email, password }) => {
     try {
-      const { data, status } = await strapiAuthHelper.login(email, password);
-      if (status === 200) {
-        localStorage.setItem(TOKEN_KEY, data.jwt);
-
-        return {
-          success: true,
-          redirectTo: "/",
-        };
-      }
+      // Clerk manages the login process internally, typically using its own UI.
+      // You can redirect users to the Clerk sign-in page.
+      window.location.href = "/sign-in";
+      return { success: true };
     } catch (error: any) {
-      const errorObj = error?.response?.data?.message?.[0]?.messages?.[0];
       return {
         success: false,
         error: {
-          message: errorObj?.message || "Login failed",
-          name: errorObj?.id || "Invalid email or password",
+          message: error.message || "Login failed",
+          name: "Login Error",
         },
       };
     }
-
-    return {
-      success: false,
-      error: {
-        message: "Login failed",
-        name: "Invalid email or password",
-      },
-    };
-  },
-  logout: async () => {
-    localStorage.removeItem(TOKEN_KEY);
-    return {
-      success: true,
-      redirectTo: "/login",
-    };
   },
   onError: async (error) => {
     if (error.response?.status === 401) {
-      return {
-        logout: true,
-      };
+      return { logout: true };
     }
-
     return { error };
   },
   check: async () => {
-    const token = localStorage.getItem(TOKEN_KEY);
-    if (token) {
+    const { isSignedIn } = useUser();
+
+    if (isSignedIn) {
+      return { authenticated: true };
+    } else {
       return {
-        authenticated: true,
+        authenticated: false,
+        error: {
+          message: "Authentication failed",
+          name: "Not authenticated",
+        },
+        logout: true,
+        redirectTo: "/sign-in",
       };
     }
-
-    return {
-      authenticated: false,
-      error: {
-        message: "Authentication failed",
-        name: "Token not found",
-      },
-      logout: true,
-      redirectTo: "/login",
-    };
   },
   getIdentity: async () => {
-    const token = localStorage.getItem(TOKEN_KEY);
-    if (!token) {
-      return null;
-    }
+    const { user, isSignedIn } = useUser();
 
-    const { data, status } = await strapiAuthHelper.me(token);
-    if (status === 200) {
-      const { id, username, email } = data;
-      return {
-        id,
-        username,
-        email,
-      };
+    if (isSignedIn && user) {
+      const { id, username } = user;
+      return { id, username };
     }
 
     return null;
+  },
+  logout: async () => {
+    const { signOut } = useClerk();
+    await signOut();
+    return {
+      success: true,
+      redirectTo: "/sign-in",
+    };
   },
 };

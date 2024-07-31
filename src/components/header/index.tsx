@@ -15,6 +15,7 @@ import { IconMoon, IconSun } from "@/components/icons";
 import { User } from "@/components/header/user";
 import { Logo } from "@/components/logo";
 import { useStyles } from "./styled";
+import { UserButton } from "@clerk/clerk-react";
 
 export const Header: React.FC<RefineThemedLayoutV2HeaderProps> = () => {
   const { list, listUrl } = useNavigation();
@@ -92,7 +93,7 @@ export const Header: React.FC<RefineThemedLayoutV2HeaderProps> = () => {
               setMode(mode === "light" ? "dark" : "light");
             }}
           />
-          <User />
+          <UserButton />
         </Flex>
       </Flex>
     </AntdLayout.Header>

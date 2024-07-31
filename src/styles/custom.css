@@ -96,3 +96,10 @@
     box-shadow: none !important;
   }
 }
+
+.sign-in-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
